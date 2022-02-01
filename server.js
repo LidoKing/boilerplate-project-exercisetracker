@@ -8,9 +8,9 @@ const mongoose = require('mongoose');
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const exerciseSchema = new mongoose.Schema({
-  description: String,
-  duration: Number,
-  date: Date
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: { type: Date, default: new Date() }
 });
 
 const userSchema = new mongoose.Schema({
@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-app.post('/api/users', (req, res) => {
+app.route('/api/users').post((req, res) => {
   let _username = req.body.username;
 
   User.findOne({ username: _username }, (err, user) => {
@@ -43,9 +43,7 @@ app.post('/api/users', (req, res) => {
       });
     }
   });
-});
-
-app.get('/api/users', (req, res) => {
+}).get((req, res) => {
   User.find({}, (err, userList) => {
     if (err) return console.log(err);
 
@@ -56,6 +54,34 @@ app.get('/api/users', (req, res) => {
     });
     res.json(formattedList);
   });
+});
+
+app.post('/api/users/:_id/exercises', (req, res) => {
+  let __id = req.body[":_id"];
+  let _description = req.body.description;
+  let _duration = Number(req.body.duration); // Convert received text type to number
+  let _date;
+
+  // Check if date field is filled in
+  if (req.body.date) {
+    _date = new Date(req.body.date).toDateString(); // Format date display
+  } else {
+    _date = new Date().toDateString();
+  }
+
+  // Check if all required fields are filled in
+  if (__id && _description && _duration) {
+    User.findById(__id, (err, user) => {
+      if (err) return console.log(err);
+      let exerciseLog = user.log;
+      exerciseLog.push({ description: _description, duration: _duration, date: _date });
+      user.count = exerciseLog.length;
+
+      res.json({ username: user.username, description: _description, duration: _duration, date: _date, "_id": user._id });
+    });
+  } else {
+    res.json({ error: "required fields are not all filled in" });
+  }
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
