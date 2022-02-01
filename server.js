@@ -45,6 +45,19 @@ app.post('/api/users', (req, res) => {
   });
 });
 
+app.get('/api/users', (req, res) => {
+  User.find({}, (err, userList) => {
+    if (err) return console.log(err);
+
+    // Extract just username and _id from user for displaying in response
+    let formattedList = [];
+    userList.forEach((user, i) => {
+      formattedList.push({ "username": user.username, "_id": user._id });
+    });
+    res.json(formattedList);
+  });
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
