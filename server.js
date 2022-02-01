@@ -73,11 +73,15 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   if (__id && _description && _duration) {
     User.findById(__id, (err, user) => {
       if (err) return console.log(err);
-      let exerciseLog = user.log;
-      exerciseLog.push({ description: _description, duration: _duration, date: _date });
-      user.count = exerciseLog.length;
+      if (user) {
+        let exerciseLog = user.log;
+        exerciseLog.push({ description: _description, duration: _duration, date: _date });
+        user.count = exerciseLog.length;
 
-      res.json({ username: user.username, description: _description, duration: _duration, date: _date, "_id": user._id });
+        res.json({ username: user.username, description: _description, duration: _duration, date: _date, "_id": user._id });
+      } else {
+          res.json({ error: "user not found" });
+      }
     });
   } else {
     res.json({ error: "required fields are not all filled in" });
