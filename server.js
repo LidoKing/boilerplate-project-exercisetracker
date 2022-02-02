@@ -74,11 +74,16 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     User.findById(__id, (err, user) => {
       if (err) return console.log(err);
       if (user) {
+        console.log(user);
         let exerciseLog = user.log;
         exerciseLog.push({ description: _description, duration: _duration, date: _date });
         user.count = exerciseLog.length;
-
-        res.json({ username: user.username, description: _description, duration: _duration, date: _date, "_id": user._id });
+        // Save modifications
+        user.save((err, updated) => {
+          if (err) return console.log(err);
+          console.log(updated);
+          res.json({ username: updated.username, description: _description, duration: _duration, date: _date, "_id": updated._id });
+        });
       } else {
           res.json({ error: "user not found" });
       }
@@ -86,6 +91,19 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   } else {
     res.json({ error: "required fields are not all filled in" });
   }
+});
+
+app.get('/api/users/:_id/logs', (req, res) => {
+  /*let unix_from = new Date(req.query.from).getTime();
+  let unix_to = new Date(req.query.to).getTime();
+  let _limit = req.query.limit;
+  let duration = unix_to - unix_from;*/
+
+  let __id = req.body[":_id"];
+
+  User.findById(__id, (err, user) => {
+    if (err) return console.log(err);
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
