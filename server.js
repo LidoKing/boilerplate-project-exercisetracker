@@ -80,7 +80,8 @@ app.post('/api/users/:_id/exercises', (req, res) => {
         // Save modifications
         user.save((err, updated) => {
           if (err) return console.log(err);
-          res.json({ username: updated.username, description: _description, duration: _duration, date: _date, "_id": updated._id });
+          console.log(_date);
+          res.json({ "_id": updated._id, username: updated.username, date: _date, duration: _duration, description: _description });
         });
       } else {
           res.json({ error: "user not found" });
@@ -123,10 +124,14 @@ app.get('/api/users/:_id/logs', (req, res) => {
     }
     else {
       let formattedLog = [];
-      log.forEach((exercise, i) => {
+      for(let exercise of log) {
           formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
-      });
-      console.log(1);
+
+          // Check if there is a limit to log display and if it has been reached
+          if (limit && formattedLog.length == limit) {
+            break;
+          }
+      }
       res.json({ username: user.username, count: formattedLog.length, "_id": user._id, log: formattedLog });
     }
   });
