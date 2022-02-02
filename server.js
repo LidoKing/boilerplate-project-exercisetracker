@@ -57,7 +57,7 @@ app.route('/api/users').post((req, res) => {
 });
 
 app.post('/api/users/:_id/exercises', (req, res) => {
-  let __id = req.body[":_id"];
+  let __id = req.params[":_id"];
   let _description = req.body.description;
   let _duration = Number(req.body.duration); // Convert received text type to number
   let _date;
