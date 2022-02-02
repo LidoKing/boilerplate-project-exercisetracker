@@ -74,14 +74,12 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     User.findById(__id, (err, user) => {
       if (err) return console.log(err);
       if (user) {
-        console.log(user);
         let exerciseLog = user.log;
         exerciseLog.push({ description: _description, duration: _duration, date: _date });
         user.count = exerciseLog.length;
         // Save modifications
         user.save((err, updated) => {
           if (err) return console.log(err);
-          console.log(updated);
           res.json({ username: updated.username, description: _description, duration: _duration, date: _date, "_id": updated._id });
         });
       } else {
@@ -96,19 +94,41 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 app.get('/api/users/:_id/logs', (req, res) => {
   let unix_from = new Date(req.query.from).getTime();
   let unix_to = new Date(req.query.to).getTime();
-  let _limit = req.query.limit;
+  let limit = req.query.limit;
   let duration = unix_to - unix_from;
-
   let __id = req.params._id;
+
   User.findById(__id, (err, user) => {
     if (err) return res.json({ error: err.message});
+    let log = user.log;
 
-    let formattedLog = [];
-    user.log.forEach((exercise, i) => {
-        formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
-    });
+    // Check if user made queries
+    if (duration || duration == 0) {
+      let filteredLog = [];
 
-    res.json({ username: user.username, count: user.count, "_id": user._id, log: formattedLog });
+      // Use for loop instead of forEach function as break is not applicable with the latter
+      for (let exercise of log) {
+        let unix_date = new Date(exercise.date).getTime();
+
+        // Check if exercise is within queried date
+        if (unix_from <= unix_date && unix_date <= unix_to) {
+            filteredLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+        }
+        // Check if there is a limit to log display and if it has been reached
+        if (limit && filteredLog.length == limit) {
+          break;
+        }
+      }
+      res.json({ username: user.username, count: filteredLog.length, "_id": user._id, log: filteredLog });
+    }
+    else {
+      let formattedLog = [];
+      log.forEach((exercise, i) => {
+          formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+      });
+      console.log(1);
+      res.json({ username: user.username, count: formattedLog.length, "_id": user._id, log: formattedLog });
+    }
   });
 });
 
