@@ -94,15 +94,21 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 });
 
 app.get('/api/users/:_id/logs', (req, res) => {
-  /*let unix_from = new Date(req.query.from).getTime();
+  let unix_from = new Date(req.query.from).getTime();
   let unix_to = new Date(req.query.to).getTime();
   let _limit = req.query.limit;
-  let duration = unix_to - unix_from;*/
+  let duration = unix_to - unix_from;
 
-  let __id = req.body[":_id"];
-
+  let __id = req.params._id;
   User.findById(__id, (err, user) => {
-    if (err) return console.log(err);
+    if (err) return res.json({ error: err.message});
+
+    let formattedLog = [];
+    user.log.forEach((exercise, i) => {
+        formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+    });
+
+    res.json({ username: user.username, count: user.count, "_id": user._id, log: formattedLog });
   });
 });
 
