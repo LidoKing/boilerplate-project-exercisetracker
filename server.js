@@ -124,26 +124,27 @@ app.get('/api/users/:_id/logs', (req, res) => {
 
         // Check if exercise is within queried date
         if (unix_from <= unix_date && unix_date <= unix_to) {
-            filteredLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+          filteredLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+          console.log(typeof new Date(exercise.date).toDateString());
         }
         // Check if there is a limit to log display and if it has been reached
         if (limit && filteredLog.length == limit) {
           break;
         }
       }
-      console.log(filteredLog);
       res.json({ username: user.username, count: filteredLog.length, "_id": user._id, log: filteredLog });
     }
     else {
       let formattedLog = [];
 
       for(let exercise of log) {
-          formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+        formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
+        console.log(typeof new Date(exercise.date).toDateString());
 
-          // Check if there is a limit to log display and if it has been reached
-          if (limit && formattedLog.length == limit) {
-            break;
-          }
+        // Check if there is a limit to log display and if it has been reached
+        if (limit && formattedLog.length == limit) {
+          break;
+        }
       }
       res.json({ username: user.username, count: formattedLog.length, "_id": user._id, log: formattedLog });
     }
