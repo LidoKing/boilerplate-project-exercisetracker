@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
 });
 
 app.route('/api/users').post((req, res) => {
+  console.log('/api/users post called');
   let _username = req.body.username;
 
   User.findOne({ username: _username }, (err, user) => {
@@ -39,11 +40,13 @@ app.route('/api/users').post((req, res) => {
       res.json({ "username": user.username, "_id": user._id });
     } else {
       User.create({ username: _username, count: 0, log: [] }, (err, createdUser) => {
+        console.log(`User created: ${createdUser._id}`);
         res.json({ "username": createdUser.username, "_id": createdUser._id });
       });
     }
   });
 }).get((req, res) => {
+  console.log('/api/users get called');
   User.find({}, (err, userList) => {
     if (err) return console.log(err);
 
@@ -57,7 +60,9 @@ app.route('/api/users').post((req, res) => {
 });
 
 app.post('/api/users/:_id/exercises', (req, res) => {
-  let __id = req.params[":_id"];
+  console.log("/api/users/:_id/exercises post called");
+  console.log(req.originalUrl);
+  let __id = req.params._id;
   let _description = req.body.description;
   let _duration = Number(req.body.duration); // Convert received text type to number
   let _date;
@@ -68,6 +73,8 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   } else {
     _date = new Date().toDateString();
   }
+
+  console.log(__id, _description, _duration, _date);
 
   // Check if all required fields are filled in
   if (__id && _description && _duration) {
@@ -80,19 +87,23 @@ app.post('/api/users/:_id/exercises', (req, res) => {
         // Save modifications
         user.save((err, updated) => {
           if (err) return console.log(err);
-          console.log(_date);
           res.json({ "_id": updated._id, username: updated.username, date: _date, duration: _duration, description: _description });
         });
+        console.log("exercise added");
       } else {
+          console.log("user not found");
           res.json({ error: "user not found" });
       }
     });
   } else {
+    console.log("required fields not filled in");
     res.json({ error: "required fields are not all filled in" });
   }
 });
 
 app.get('/api/users/:_id/logs', (req, res) => {
+  console.log('/api/users/:_id/logs get called');
+  console.log(req.originalUrl);
   let unix_from = new Date(req.query.from).getTime();
   let unix_to = new Date(req.query.to).getTime();
   let limit = req.query.limit;
@@ -120,10 +131,12 @@ app.get('/api/users/:_id/logs', (req, res) => {
           break;
         }
       }
+      console.log(filteredLog);
       res.json({ username: user.username, count: filteredLog.length, "_id": user._id, log: filteredLog });
     }
     else {
       let formattedLog = [];
+
       for(let exercise of log) {
           formattedLog.push({ description: exercise.description, duration: exercise.duration, date: new Date(exercise.date).toDateString() });
 
